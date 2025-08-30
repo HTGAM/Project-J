@@ -7,7 +7,9 @@ public class Monster : MonoBehaviour
 {
     [SerializeField] string playerTagName = "Player";
     [SerializeField] float findDistance;
-    float lerpSpeed = 4f;
+    [SerializeField] float lerpSpeed;
+    [SerializeField] float moveSpeed;
+    [SerializeField] float attackDistance;
     public Transform target;
 
     void Update()
@@ -20,6 +22,10 @@ public class Monster : MonoBehaviour
             Vector3 defaultRotation = Quaternion.LookRotation(target.transform.position - transform.position).eulerAngles;
             float fixedRotation = Mathf.LerpAngle(transform.rotation.eulerAngles.y, defaultRotation.y, lerpSpeed * Time.deltaTime);
             transform.rotation = Quaternion.Euler(0, fixedRotation, 0);
+
+            float targetDistance = Vector3.Distance(transform.position, target.transform.position);
+            if (targetDistance > attackDistance) transform.position += transform.forward * moveSpeed * Time.deltaTime;
         }
+
     }
 }
