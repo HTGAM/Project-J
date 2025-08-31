@@ -600,7 +600,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerTagName: Player
-  findDistance: 555
+  findDistance: 15
+  lerpSpeed: 5
+  moveSpeed: 5
+  attackDistance: 5
   target: {fileID: 0}
 --- !u!1 &1165917659
 GameObject:
