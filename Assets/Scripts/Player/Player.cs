@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+//гоеб╟г
 public class Player : MonoBehaviour
 {
     [Header("Player Settings")]
