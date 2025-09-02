@@ -18,6 +18,9 @@ public class Player : MonoBehaviour
     [Header("Animation Settings")]
     public Animator animator;
 
+    [Header("Debug Settings")]
+    public LayerMask groundLayer; // 지형 레이어 (Plane)
+
     private float jumpTimer = 0f;
     private bool isJumping = false;
     private Vector3 jumpStartPosition;
@@ -38,6 +41,9 @@ public class Player : MonoBehaviour
 
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
+
+        if (groundLayer.value == 0)
+            groundLayer = LayerMask.GetMask("Default"); // Plane은 기본적으로 Default 레이어
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -62,12 +68,14 @@ public class Player : MonoBehaviour
 
         // 점프 처리
         isGrounded = IsGrounded();
-        if (Input.GetButtonDown("Jump") && isGrounded && !isJumping)
+        if (Input.GetButtonDown("Jump") && !isJumping)
         {
+            Debug.Log("Jump 입력 감지, IsGrounded: " + isGrounded);
             isJumping = true;
             jumpStartPosition = transform.position;
             jumpTimer = 0f;
-            animator.SetTrigger("Jump"); // 점프 애니메이션 트리거
+            animator.SetTrigger("Jump");
+            Debug.Log("Jump 트리거 호출");
         }
 
         // 비물리 점프 로직
@@ -77,7 +85,6 @@ public class Player : MonoBehaviour
             float t = jumpTimer / jumpDuration;
             if (t <= 1f)
             {
-                // 부드러운 점프 곡선 (파라볼라)
                 float height = jumpHeight * (1f - Mathf.Pow(2f * t - 1f, 2f));
                 transform.position = new Vector3(
                     transform.position.x,
@@ -87,14 +94,14 @@ public class Player : MonoBehaviour
             }
             else
             {
-                // 점프 종료
                 isJumping = false;
                 transform.position = new Vector3(
                     transform.position.x,
                     jumpStartPosition.y,
                     transform.position.z
                 );
-                animator.SetBool("IsGrounded", true); // 착지 상태로 전환
+                animator.SetBool("IsGrounded", true);
+                Debug.Log("Jump 종료, 착지");
             }
         }
     }
@@ -121,7 +128,7 @@ public class Player : MonoBehaviour
         if (animator != null)
         {
             float speed = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")).magnitude;
-            Debug.Log("Speed: " + speed + ", IsGrounded: " + isGrounded + ", IsJumping: " + isJumping);
+            Debug.Log($"Speed: {speed}, IsGrounded: {isGrounded}, IsJumping: {isJumping}");
             animator.SetFloat("Speed", speed);
             animator.SetBool("IsGrounded", isGrounded && !isJumping);
         }
@@ -129,9 +136,10 @@ public class Player : MonoBehaviour
 
     bool IsGrounded()
     {
-        Vector3 rayStart = transform.position - new Vector3(0, 0.5f, 0);
-        bool grounded = Physics.Raycast(rayStart, Vector3.down, 1.5f);
-        Debug.Log("IsGrounded: " + grounded);
+        Vector3 rayStart = transform.position - new Vector3(0, 0.9f, 0); // Capsule Collider 하단
+        bool grounded = Physics.Raycast(rayStart, Vector3.down, 0.6f, groundLayer);
+        Debug.DrawRay(rayStart, Vector3.down * 0.6f, grounded ? Color.green : Color.red, 0.1f);
+        Debug.Log($"IsGrounded: {grounded}, RayStart: {rayStart}");
         return grounded;
     }
 }
