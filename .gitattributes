@@ -1,0 +1,6 @@
+Assets/Fonts/** filter=lfs diff=lfs merge=lfs -text
+
+"Assets/TextMeshPro/**" linguist-vendored=true;
+
+
+
