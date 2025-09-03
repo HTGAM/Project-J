@@ -17,10 +17,6 @@ public class Player : MonoBehaviour
 
     [Header("Animation Settings")]
     public Animator animator;
-
-    [Header("Debug Settings")]
-    public LayerMask groundLayer; // 지형 레이어 (Plane)
-
     private float jumpTimer = 0f;
     private bool isJumping = false;
     private Vector3 jumpStartPosition;
@@ -32,18 +28,12 @@ public class Player : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true;
-        rb.isKinematic = true;
-
         animator = GetComponent<Animator>();
         if (animator == null)
             Debug.LogError("Animator 컴포넌트가 없습니다. T-Pose 오브젝트에 Animator를 추가하세요.");
 
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
-
-        if (groundLayer.value == 0)
-            groundLayer = LayerMask.GetMask("Default"); // Plane은 기본적으로 Default 레이어
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -136,10 +126,13 @@ public class Player : MonoBehaviour
 
     bool IsGrounded()
     {
-        Vector3 rayStart = transform.position - new Vector3(0, 0.9f, 0); // Capsule Collider 하단
-        bool grounded = Physics.Raycast(rayStart, Vector3.down, 0.6f, groundLayer);
-        Debug.DrawRay(rayStart, Vector3.down * 0.6f, grounded ? Color.green : Color.red, 0.1f);
+        Vector3 rayStart = transform.position; // Capsule Collider 하단
+        float rayLength = 1.3f;
+
+        bool grounded = Physics.Raycast(rayStart, Vector3.down, rayLength, LayerMask.GetMask("Ground"));
+        Debug.DrawRay(rayStart, Vector3.down * rayLength, grounded ? Color.green : Color.red, 0.1f);
         Debug.Log($"IsGrounded: {grounded}, RayStart: {rayStart}");
+
         return grounded;
     }
 }
