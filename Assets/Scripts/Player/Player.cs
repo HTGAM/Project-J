@@ -31,7 +31,7 @@ public class Player : MonoBehaviour
         animator = GetComponent<Animator>();
         if (animator == null)
             Debug.LogError("Animator 컴포넌트가 없습니다. T-Pose 오브젝트에 Animator를 추가하세요.");
-
+        
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
 
@@ -47,7 +47,7 @@ public class Player : MonoBehaviour
         UpdateAnimator();
     }
 
-    void MovePlayer()
+    public void MovePlayer()
     {
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
@@ -126,7 +126,7 @@ public class Player : MonoBehaviour
 
     bool IsGrounded()
     {
-        Vector3 rayStart = transform.position; // Capsule Collider 하단
+        Vector3 rayStart = transform.position;
         float rayLength = 1.3f;
 
         bool grounded = Physics.Raycast(rayStart, Vector3.down, rayLength, LayerMask.GetMask("Ground"));
