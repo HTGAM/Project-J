@@ -6,8 +6,13 @@ public class Player : MonoBehaviour
 {
     [Header("Player Settings")]
     public float moveSpeed = 5f;
-    public float jumpHeight = 2f; // 점프 높이
-    public float jumpDuration = 0.5f; // 점프 시간 (왕복)
+
+    [Header("Roll Settings")]
+    public float rollForce = 7f;         // 구르기 이동 속도
+    public float rollDuration = 0.6f;    // 구르기 지속 시간
+    public float rollCooldown = 0.5f;    // 구르기 쿨타임
+    private bool isRolling = false;
+    private float lastRollTime = -10f;
 
     [Header("Camera Settings")]
     public Transform cameraTransform;
@@ -17,9 +22,7 @@ public class Player : MonoBehaviour
 
     [Header("Animation Settings")]
     public Animator animator;
-    private float jumpTimer = 0f;
-    private bool isJumping = false;
-    private Vector3 jumpStartPosition;
+
     private Rigidbody rb;
     private float xRotation = 0f;
     private Vector3 currentVelocity;
@@ -31,7 +34,7 @@ public class Player : MonoBehaviour
         animator = GetComponent<Animator>();
         if (animator == null)
             Debug.LogError("Animator 컴포넌트가 없습니다. T-Pose 오브젝트에 Animator를 추가하세요.");
-        
+
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
 
@@ -52,48 +55,36 @@ public class Player : MonoBehaviour
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
 
+        // 이동
         Vector3 move = transform.right * h + transform.forward * v;
         Vector3 velocity = move * moveSpeed;
         transform.position += velocity * Time.deltaTime;
 
-        // 점프 처리
-        isGrounded = IsGrounded();
-        if (Input.GetButtonDown("Jump") && !isJumping)
+        // 구르기 시작
+        if (Input.GetButtonDown("Jump") && !isRolling && Time.time > lastRollTime + rollCooldown) // Jump 버튼을 Roll로 재활용
         {
-            Debug.Log("Jump 입력 감지, IsGrounded: " + isGrounded);
-            isJumping = true;
-            jumpStartPosition = transform.position;
-            jumpTimer = 0f;
-            animator.SetTrigger("Jump");
-            Debug.Log("Jump 트리거 호출");
+            StartCoroutine(Roll());
         }
+    }
 
-        // 비물리 점프 로직
-        if (isJumping)
+    private IEnumerator Roll()
+    {
+        isRolling = true;
+        lastRollTime = Time.time;
+
+        if (animator != null)
+            animator.SetTrigger("Roll");
+
+        Vector3 rollDirection = transform.forward;
+
+        float elapsed = 0f;
+        while (elapsed < rollDuration)
         {
-            jumpTimer += Time.deltaTime;
-            float t = jumpTimer / jumpDuration;
-            if (t <= 1f)
-            {
-                float height = jumpHeight * (1f - Mathf.Pow(2f * t - 1f, 2f));
-                transform.position = new Vector3(
-                    transform.position.x,
-                    jumpStartPosition.y + height,
-                    transform.position.z
-                );
-            }
-            else
-            {
-                isJumping = false;
-                transform.position = new Vector3(
-                    transform.position.x,
-                    jumpStartPosition.y,
-                    transform.position.z
-                );
-                animator.SetBool("IsGrounded", true);
-                Debug.Log("Jump 종료, 착지");
-            }
+            rb.MovePosition(transform.position + rollDirection * rollForce * Time.deltaTime);
+            elapsed += Time.deltaTime;
+            yield return null;
         }
+        isRolling = false;
     }
 
     void RotatePlayer()
@@ -118,22 +109,8 @@ public class Player : MonoBehaviour
         if (animator != null)
         {
             float speed = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")).magnitude;
-            Debug.Log($"Speed: {speed}, IsGrounded: {isGrounded}, IsJumping: {isJumping}");
             animator.SetFloat("Speed", speed);
-            animator.SetBool("IsGrounded", isGrounded && !isJumping);
+            animator.SetBool("IsGrounded", isGrounded && !isRolling);
         }
     }
-
-    bool IsGrounded()
-    {
-        Vector3 rayStart = transform.position;
-        float rayLength = 1.3f;
-
-        bool grounded = Physics.Raycast(rayStart, Vector3.down, rayLength, LayerMask.GetMask("Ground"));
-        Debug.DrawRay(rayStart, Vector3.down * rayLength, grounded ? Color.green : Color.red, 0.1f);
-        Debug.Log($"IsGrounded: {grounded}, RayStart: {rayStart}");
-
-        return grounded;
-    }
 }
-//sex
