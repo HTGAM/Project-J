@@ -12,7 +12,7 @@ public class Player : MonoBehaviour
     public float rollDuration = 0.6f;    // 구르기 지속 시간
     public float rollCooldown = 0.5f;    // 구르기 쿨타임
     private bool isRolling = false;
-    private float lastRollTime = -10f;
+    private float lastRollTime = -10f; //구를때 다시 연속으로 구르는 버그 생길까봐 연속구르기 막기용
 
     [Header("Camera Settings")]
     public Transform cameraTransform;
